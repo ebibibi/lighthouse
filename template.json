@@ -1,0 +1,78 @@
+{
+ "$schema": "https://schema.management.azure.com/schemas/2019-08-01/subscriptionDeploymentTemplate.json#",
+ "contentVersion": "1.0.0.0",
+ "parameters": {
+  "mspOfferName": {
+   "type": "string",
+   "metadata": {
+    "description": "Specify a unique name for your offer"
+   },
+   "defaultValue": "胡田管理用"
+  },
+  "mspOfferDescription": {
+   "type": "string",
+   "metadata": {
+    "description": "Name of the Managed Service Provider offering"
+   },
+   "defaultValue": "胡田(ebibibi@gmail.com)が共同管理者権限を持ちます。"
+  },
+  "managedByTenantId": {
+   "type": "string",
+   "metadata": {
+    "description": "Specify the tenant id of the Managed Service Provider"
+   },
+   "defaultValue": "7b54e7bc-acb0-4a9b-ad82-7421b9e4e2d9"
+  },
+  "authorizations": {
+   "type": "array",
+   "metadata": {
+    "description": "Specify an array of objects, containing tuples of Azure Active Directory principalId, a Azure roleDefinitionId, and an optional principalIdDisplayName. The roleDefinition specified is granted to the principalId in the provider's Active Directory and the principalIdDisplayName is visible to customers."
+   },
+   "defaultValue": [
+    {
+     "principalId": "e28f43d1-cb8e-4c41-8bb9-2c1c37a5258a",
+     "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
+     "principalIdDisplayName": "Ebisuda Masahiko"
+    }
+   ]
+  }
+ },
+ "variables": {
+  "mspRegistrationName": "[guid(parameters('mspOfferName'))]",
+  "mspAssignmentName": "[guid(parameters('mspOfferName'))]"
+ },
+ "resources": [
+  {
+   "type": "Microsoft.ManagedServices/registrationDefinitions",
+   "apiVersion": "2020-02-01-preview",
+   "name": "[variables('mspRegistrationName')]",
+   "properties": {
+    "registrationDefinitionName": "[parameters('mspOfferName')]",
+    "description": "[parameters('mspOfferDescription')]",
+    "managedByTenantId": "[parameters('managedByTenantId')]",
+    "authorizations": "[parameters('authorizations')]"
+   }
+  },
+  {
+   "type": "Microsoft.ManagedServices/registrationAssignments",
+   "apiVersion": "2020-02-01-preview",
+   "name": "[variables('mspAssignmentName')]",
+   "dependsOn": [
+    "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
+   ],
+   "properties": {
+    "registrationDefinitionId": "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
+   }
+  }
+ ],
+ "outputs": {
+  "mspOfferName": {
+   "type": "string",
+   "value": "[concat('Managed by', ' ', parameters('mspOfferName'))]"
+  },
+  "authorizations": {
+   "type": "array",
+   "value": "[parameters('authorizations')]"
+  }
+ }
+}
